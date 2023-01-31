@@ -1,26 +1,23 @@
 import 'package:buybuyka/screens/product_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/product.dart';
 
 class ProductItem extends StatelessWidget {
-  final String title;
-  final String id;
-  final String imageUrl;
-  final double price;
-
-  ProductItem(this.id, this.title, this.imageUrl, this.price);
-
   @override
   Widget build(BuildContext context) {
+    final product = Provider.of<Product>(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GestureDetector(
         onTap: () {
           Navigator.of(context)
-              .pushNamed(ProductDetailsScreen.routeName, arguments: id);
+              .pushNamed(ProductDetailsScreen.routeName, arguments: product.id);
         },
         child: GridTile(
           child: Image.network(
-            imageUrl,
+            product.imageUrl,
             fit: BoxFit.cover,
           ),
           header: Center(
@@ -34,7 +31,7 @@ class ProductItem extends StatelessWidget {
                 color: Colors.black54,
               ),
               child: Text(
-                title,
+                product.title,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -47,15 +44,16 @@ class ProductItem extends StatelessWidget {
           footer: GridTileBar(
             backgroundColor: Colors.black54,
             title: Text(
-              '\$$price',
+              '\$${product.price}',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
             leading: IconButton(
-              icon: Icon(Icons.favorite),
+              icon: Icon(
+                  product.isFavorite ? Icons.favorite : Icons.favorite_border),
               color: Theme.of(context).colorScheme.secondary,
               onPressed: () {
-                //...
+                product.toggleFavoriteStatus();
               },
             ),
             trailing: IconButton(
