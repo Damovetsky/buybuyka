@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:buybuyka/models/http_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -108,9 +109,20 @@ class Products with ChangeNotifier {
     }
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
     final productIndex = _items.indexWhere((element) => element.id == id);
     if (productIndex >= 0) {
+      final url = Uri.parse(
+          'https://buybuyka-onlineshop-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+      await http.patch(
+        url,
+        body: json.encode({
+          'title': newProduct.title,
+          'description': newProduct.description,
+          'imageUrl': newProduct.imageUrl,
+          'price': newProduct.price,
+        }),
+      );
       _items[productIndex] = newProduct;
       notifyListeners();
     } else {
@@ -118,8 +130,19 @@ class Products with ChangeNotifier {
     }
   }
 
-  void removeProduct(String id) {
-    _items.removeWhere((element) => element.id == id);
+  void removeProduct(String id) async {
+    final url = Uri.parse(
+        'https://buybuyka-onlineshop-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+    var productIndex = _items.indexWhere((element) => element.id == id);
+    var productData = _items[productIndex];
+    _items.removeAt(productIndex);
     notifyListeners();
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.insert(productIndex, productData);
+      notifyListeners();
+      throw HttpExcection('Could not delete product');
+    }
+    productData = null;
   }
 }
